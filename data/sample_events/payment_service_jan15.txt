@@ -1,0 +1,17 @@
+[2025-01-15 08:23:11] INFO  | ServiceA | Request received: POST /api/v2/transactions | user_id=U-4821 | session=S-9910
+[2025-01-15 08:23:12] INFO  | ServiceA | Payment validation started | amount=249.99 | currency=USD | method=credit_card
+[2025-01-15 08:23:13] WARN  | PaymentGateway | Retry attempt 1/3 for transaction TXN-78234 | reason=timeout | latency=3200ms
+[2025-01-15 08:23:16] WARN  | PaymentGateway | Retry attempt 2/3 for transaction TXN-78234 | reason=timeout | latency=4100ms
+[2025-01-15 08:23:20] ERROR | PaymentGateway | Transaction TXN-78234 failed after 3 retries | error=GATEWAY_TIMEOUT | total_elapsed=11200ms
+[2025-01-15 08:23:20] INFO  | ServiceA | Fallback triggered: routing to secondary payment processor | txn=TXN-78234
+[2025-01-15 08:23:21] INFO  | PaymentGateway-B | Processing transaction TXN-78234 | processor=stripe_backup
+[2025-01-15 08:23:22] INFO  | PaymentGateway-B | Transaction TXN-78234 approved | auth_code=A-99182 | latency=1100ms
+[2025-01-15 08:23:22] INFO  | ServiceA | Payment confirmed | txn=TXN-78234 | user_id=U-4821 | total_processing_time=11300ms
+[2025-01-15 08:24:01] INFO  | ServiceA | Request received: POST /api/v2/transactions | user_id=U-5512 | session=S-1023
+[2025-01-15 08:24:02] INFO  | ServiceA | Payment validation started | amount=89.00 | currency=USD | method=debit_card
+[2025-01-15 08:24:03] INFO  | PaymentGateway | Transaction TXN-78235 approved | auth_code=A-99183 | latency=890ms
+[2025-01-15 08:24:03] INFO  | ServiceA | Payment confirmed | txn=TXN-78235 | user_id=U-5512 | total_processing_time=2100ms
+[2025-01-15 08:30:00] INFO  | HealthCheck | All services healthy | uptime=99.97% | active_connections=142
+[2025-01-15 08:35:22] WARN  | RateLimiter | Rate limit approaching for IP 192.168.1.45 | current=890/1000 req/min
+[2025-01-15 08:35:55] ERROR | RateLimiter | Rate limit exceeded for IP 192.168.1.45 | blocked=true | count=1012/1000 req/min
+[2025-01-15 08:36:00] INFO  | SecurityModule | Suspicious activity flagged | ip=192.168.1.45 | reason=rate_limit_burst | action=temporary_block_30min

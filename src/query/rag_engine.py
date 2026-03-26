@@ -22,7 +22,8 @@ class RAGEngine:
         self,
         faiss_index: FAISSIndex,
         embedder: Embedder,
-        llm_model: str = "gpt-3.5-turbo",
+        llm_model: str = "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        llm_backend: str = "huggingface",
         temperature: float = 0.2,
         top_k: int = 5,
         similarity_threshold: float = 0.65,
@@ -33,7 +34,11 @@ class RAGEngine:
         self.top_k = top_k
         self.similarity_threshold = similarity_threshold
         self.prompt_builder = PromptBuilder(max_context_tokens=max_context_tokens)
-        self.llm_client = LLMClient(model=llm_model, temperature=temperature)
+        self.llm_client = LLMClient(
+            backend=llm_backend,
+            model=llm_model,
+            temperature=temperature,
+        )
 
     def query(self, question: str, top_k: Optional[int] = None) -> dict:
         """
@@ -64,10 +69,10 @@ class RAGEngine:
         if not filtered:
             logger.warning("No chunks passed similarity threshold")
             return {
-                "answer": "I couldn't find sufficiently relevant information in the documents to answer your question.",
+                "answer": "I couldn't find sufficiently relevant information in the event logs to answer your question.",
                 "sources": [],
                 "scores": [],
-                "chunks_retrieved": 0,
+                "chunks_retrieved": len(results),
                 "chunks_used": 0,
             }
 

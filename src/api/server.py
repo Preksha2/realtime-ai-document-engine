@@ -1,6 +1,6 @@
 """
 FastAPI application with REST and WebSocket endpoints
-for real-time document querying.
+for real-time event log querying.
 """
 import os
 import json
@@ -46,6 +46,10 @@ async def lifespan(app: FastAPI):
     # Initialize embedder
     embedder = Embedder(model_name=index_cfg["embedding_model"])
 
+    # Determine LLM backend
+    llm_backend = query_cfg.get("llm_backend", "huggingface")
+    llm_model = query_cfg.get("llm_model", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
     # Load existing index if available
     if os.path.exists(index_path):
         faiss_index = FAISSIndex(embedding_dim=embedder.embedding_dim)
@@ -53,7 +57,8 @@ async def lifespan(app: FastAPI):
         rag_engine = RAGEngine(
             faiss_index=faiss_index,
             embedder=embedder,
-            llm_model=query_cfg["llm_model"],
+            llm_model=llm_model,
+            llm_backend=llm_backend,
             temperature=query_cfg["temperature"],
             top_k=query_cfg["top_k"],
             similarity_threshold=query_cfg["similarity_threshold"],
@@ -61,7 +66,7 @@ async def lifespan(app: FastAPI):
         )
         logger.info("RAG engine loaded with existing index")
     else:
-        logger.warning(f"No index found at {index_path}. Use /index endpoint to build one.")
+        logger.warning(f"No index found at {index_path}. Use /index endpoint or run scripts/demo.py first.")
 
     yield
 
@@ -71,7 +76,7 @@ async def lifespan(app: FastAPI):
 # --- App setup ---
 app = FastAPI(
     title="Real-Time AI Document Engine",
-    description="RAG pipeline for querying documents via natural language",
+    description="RAG pipeline for querying event logs via natural language",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -99,11 +104,11 @@ async def health_check():
 
 @app.post("/query", response_model=QueryResponse)
 async def query_documents(request: QueryRequest):
-    """Query documents using natural language."""
+    """Query event logs using natural language."""
     if rag_engine is None:
         raise HTTPException(
             status_code=503,
-            detail="RAG engine not initialized. Build an index first via /index."
+            detail="RAG engine not initialized. Build an index first via /index or run scripts/demo.py."
         )
 
     result = rag_engine.query(question=request.question, top_k=request.top_k)
@@ -112,7 +117,7 @@ async def query_documents(request: QueryRequest):
 
 @app.post("/index", response_model=IndexResponse)
 async def build_index(request: IndexRequest):
-    """Trigger document indexing from a source directory."""
+    """Trigger event log indexing from a source directory."""
     global rag_engine, faiss_index
 
     config = load_config()
@@ -130,10 +135,14 @@ async def build_index(request: IndexRequest):
         )
         faiss_index = pipeline.run(save_path=request.save_path)
 
+        llm_backend = query_cfg.get("llm_backend", "huggingface")
+        llm_model = query_cfg.get("llm_model", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
         rag_engine = RAGEngine(
             faiss_index=faiss_index,
             embedder=pipeline.embedder,
-            llm_model=query_cfg["llm_model"],
+            llm_model=llm_model,
+            llm_backend=llm_backend,
             temperature=query_cfg["temperature"],
             top_k=query_cfg["top_k"],
             similarity_threshold=query_cfg["similarity_threshold"],
@@ -183,7 +192,7 @@ manager = ConnectionManager()
 @app.websocket("/ws/query")
 async def websocket_query(websocket: WebSocket):
     """
-    WebSocket endpoint for real-time document querying.
+    WebSocket endpoint for real-time event log querying.
 
     Expects JSON messages: {"question": "...", "top_k": 5}
     Returns JSON responses with answer and sources.
@@ -210,7 +219,6 @@ async def websocket_query(websocket: WebSocket):
                 await manager.send_json(websocket, {"error": "Question cannot be empty"})
                 continue
 
-            # Run query in thread pool to avoid blocking
             result = await asyncio.to_thread(
                 rag_engine.query, question=question, top_k=top_k
             )

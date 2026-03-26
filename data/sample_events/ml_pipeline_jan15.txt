@@ -1,0 +1,16 @@
+[2025-01-15 06:00:00] INFO  | MLPipeline | Training job started | model=fraud_detector_v3 | job_id=ML-0445
+[2025-01-15 06:00:01] INFO  | MLPipeline | Loading training data | source=s3://ml-data/fraud/2025-Q1 | records=2,450,000
+[2025-01-15 06:00:45] INFO  | MLPipeline | Data loaded | size=3.2GB | features=128 | positive_rate=0.34%
+[2025-01-15 06:00:46] INFO  | MLPipeline | Preprocessing: normalization, feature engineering, oversampling (SMOTE)
+[2025-01-15 06:02:00] INFO  | MLPipeline | Preprocessing complete | final_features=156 | balanced_positive_rate=15%
+[2025-01-15 06:02:01] INFO  | MLPipeline | Training started | model=XGBoost | gpu=A100 | epochs=200 | early_stopping=20
+[2025-01-15 06:45:00] INFO  | MLPipeline | Training complete | best_epoch=142 | train_auc=0.9834 | val_auc=0.9721
+[2025-01-15 06:45:01] INFO  | MLPipeline | Evaluation on holdout set | test_auc=0.9698 | precision@95recall=0.82 | f1=0.87
+[2025-01-15 06:45:02] WARN  | MLPipeline | Model drift check: feature_importance shift detected | top_shifted=transaction_velocity(+12%), merchant_category(-8%)
+[2025-01-15 06:45:03] INFO  | MLPipeline | Comparison with production model (v2): AUC improvement +2.1% | false_positive_reduction=18%
+[2025-01-15 06:45:04] INFO  | ModelRegistry | Model registered: fraud_detector_v3 | artifact=s3://models/fraud_v3.tar.gz | status=STAGING
+[2025-01-15 06:45:05] INFO  | MLPipeline | A/B test config generated | control=fraud_v2 | treatment=fraud_v3 | traffic_split=90/10
+[2025-01-15 06:45:06] INFO  | Scheduler | Training job completed | job_id=ML-0445 | elapsed=45m06s | status=SUCCESS
+[2025-01-15 07:00:00] INFO  | InferencePipeline | Batch prediction started | model=fraud_detector_v2(production) | records=125,000
+[2025-01-15 07:01:30] INFO  | InferencePipeline | Batch prediction complete | flagged=423(0.34%) | avg_latency=0.8ms/record
+[2025-01-15 07:01:31] INFO  | InferencePipeline | High-confidence fraud alerts: 67 | sent_to=fraud-review-queue

@@ -1,14 +1,16 @@
 """
 Unified evaluation pipeline.
-Combines relevance, groundedness, and safety checks into a single report.
+Combines relevance, groundedness, safety, and reliability checks
+into a single comprehensive report.
 """
-from typing import List, Tuple
+from typing import List, Tuple, Callable, Optional
 from loguru import logger
 
 from src.indexing.embedder import Embedder
 from src.evaluation.relevance import RelevanceEvaluator
 from src.evaluation.groundedness import GroundednessEvaluator
 from src.evaluation.safety import SafetyFilter
+from src.evaluation.reliability import ReliabilityEvaluator
 
 
 class ResponseEvaluator:
@@ -20,16 +22,19 @@ class ResponseEvaluator:
         relevance_threshold: float = 0.7,
         groundedness_threshold: float = 0.6,
         enable_safety: bool = True,
+        reliability_runs: int = 3,
     ):
         self.relevance = RelevanceEvaluator(embedder, threshold=relevance_threshold)
         self.groundedness = GroundednessEvaluator(embedder, threshold=groundedness_threshold)
         self.safety = SafetyFilter(enable_filter=enable_safety)
+        self.reliability = ReliabilityEvaluator(embedder, num_runs=reliability_runs)
 
     def evaluate(
         self,
         query: str,
         answer: str,
         retrieved_chunks: List[Tuple[dict, float]],
+        query_fn: Optional[Callable] = None,
     ) -> dict:
         """
         Run full evaluation suite on a RAG response.
@@ -38,6 +43,7 @@ class ResponseEvaluator:
             query: Original user question.
             answer: LLM-generated response.
             retrieved_chunks: List of (chunk_dict, score) from retrieval.
+            query_fn: Optional callable for reliability testing.
 
         Returns:
             Comprehensive evaluation report.
@@ -48,11 +54,19 @@ class ResponseEvaluator:
         groundedness_report = self.groundedness.evaluate(answer, retrieved_chunks)
         safety_report = self.safety.evaluate(answer, query)
 
+        # Reliability (optional — requires query function)
+        reliability_report = None
+        reliability_score = 1.0  # Default to 1.0 if not tested
+        if query_fn is not None:
+            reliability_report = self.reliability.evaluate(query_fn, query)
+            reliability_score = reliability_report["mean_consistency"]
+
         # Overall quality score (weighted average)
         quality_score = (
-            0.4 * relevance_report["mean_score"]
-            + 0.4 * groundedness_report["overall_score"]
-            + 0.2 * (1.0 if safety_report["is_safe"] else 0.0)
+            0.30 * relevance_report["mean_score"]
+            + 0.30 * groundedness_report["overall_score"]
+            + 0.20 * (1.0 if safety_report["is_safe"] else 0.0)
+            + 0.20 * reliability_score
         )
 
         report = {
@@ -60,6 +74,7 @@ class ResponseEvaluator:
             "relevance": relevance_report,
             "groundedness": groundedness_report,
             "safety": safety_report,
+            "reliability": reliability_report,
             "pass": quality_score >= 0.5 and safety_report["is_safe"],
         }
 

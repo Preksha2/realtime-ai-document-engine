@@ -1,0 +1,14 @@
+[2025-01-15 13:00:00] INFO  | AuthService | Login attempt | user_id=U-4821 | ip=10.0.1.55 | method=oauth2
+[2025-01-15 13:00:01] INFO  | AuthService | Login successful | user_id=U-4821 | session=S-20145 | mfa=true
+[2025-01-15 13:00:02] INFO  | AuditLog | Session created | user_id=U-4821 | role=admin | permissions=[read,write,deploy]
+[2025-01-15 13:05:00] WARN  | AuthService | Failed login attempt | user_id=U-3301 | ip=203.45.67.89 | reason=invalid_password | attempt=3/5
+[2025-01-15 13:05:30] WARN  | AuthService | Failed login attempt | user_id=U-3301 | ip=203.45.67.89 | reason=invalid_password | attempt=4/5
+[2025-01-15 13:06:00] ERROR | AuthService | Account locked | user_id=U-3301 | ip=203.45.67.89 | reason=max_attempts_exceeded | lockout=30min
+[2025-01-15 13:06:01] INFO  | SecurityModule | Brute force pattern detected | user_id=U-3301 | ip=203.45.67.89 | action=alert_security_team
+[2025-01-15 13:06:02] INFO  | NotificationService | Security alert sent | recipient=security-ops@company.com | severity=HIGH
+[2025-01-15 13:10:00] INFO  | AuthService | Token refresh | user_id=U-5512 | session=S-20100 | token_age=25min
+[2025-01-15 13:10:01] INFO  | AuthService | Token refreshed | user_id=U-5512 | new_expiry=2025-01-15T14:10:01Z
+[2025-01-15 13:30:00] INFO  | AuthService | API key authentication | service=analytics-pipeline | key_id=AK-0042 | scope=read-only
+[2025-01-15 13:30:01] INFO  | AuditLog | API access granted | service=analytics-pipeline | endpoint=/api/v2/reports | method=GET
+[2025-01-15 14:00:00] INFO  | SessionManager | Active sessions: 847 | peak_today: 1,203 | avg_duration=34min
+[2025-01-15 14:00:01] INFO  | SessionManager | Expired sessions cleaned: 156 | reason=timeout(120min)

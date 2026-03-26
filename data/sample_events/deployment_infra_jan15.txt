@@ -1,0 +1,17 @@
+[2025-01-15 10:00:00] INFO  | DeployManager | Deployment initiated: user-service v2.14.0 | env=production | strategy=rolling
+[2025-01-15 10:00:01] INFO  | DeployManager | Pre-deployment checks started | health=OK | disk=72% | memory=58%
+[2025-01-15 10:00:05] INFO  | DeployManager | Rolling update: pod 1/4 updated | image=user-service:v2.14.0
+[2025-01-15 10:00:35] INFO  | DeployManager | Rolling update: pod 2/4 updated | readiness_check=passed
+[2025-01-15 10:01:05] WARN  | DeployManager | Rolling update: pod 3/4 readiness check delayed | retry=1 | reason=slow_startup
+[2025-01-15 10:01:20] INFO  | DeployManager | Rolling update: pod 3/4 updated | readiness_check=passed (delayed 15s)
+[2025-01-15 10:01:50] INFO  | DeployManager | Rolling update: pod 4/4 updated | readiness_check=passed
+[2025-01-15 10:01:51] INFO  | DeployManager | Deployment complete: user-service v2.14.0 | total_time=111s | rollback=not_needed
+[2025-01-15 10:02:00] INFO  | MonitoringAgent | Post-deployment metrics: error_rate=0.02% | p95_latency=145ms | p99_latency=320ms
+[2025-01-15 10:05:00] INFO  | MonitoringAgent | 5-min post-deploy check: all metrics within baseline | cpu=34% | memory=61%
+[2025-01-15 10:15:00] INFO  | MonitoringAgent | 15-min post-deploy check: stable | error_rate=0.01% | p95_latency=138ms
+[2025-01-15 10:15:01] INFO  | DeployManager | Deployment verified: user-service v2.14.0 | status=STABLE
+[2025-01-15 11:30:00] ERROR | AlertManager | CPU spike detected on node-3 | cpu=94% | duration=45s | threshold=90%
+[2025-01-15 11:30:01] INFO  | AutoScaler | Scale-up triggered: adding 2 replicas to user-service | reason=cpu_threshold
+[2025-01-15 11:30:30] INFO  | AutoScaler | Scale-up complete: user-service now running 6 replicas | cpu_avg=52%
+[2025-01-15 11:45:00] INFO  | AutoScaler | Scale-down evaluation: load normalized | keeping 6 replicas for cooldown period (15min)
+[2025-01-15 12:00:00] INFO  | AutoScaler | Scale-down executed: user-service reduced to 4 replicas | cpu_avg=38%

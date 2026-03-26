@@ -1,0 +1,14 @@
+[2025-01-15 09:00:01] INFO  | Scheduler | Daily batch job started: reconciliation_pipeline | job_id=JOB-2201
+[2025-01-15 09:00:02] INFO  | DataIngestion | Loading transaction records from primary DB | date_range=2025-01-14
+[2025-01-15 09:00:15] INFO  | DataIngestion | Loaded 48,291 transaction records | size=124MB | elapsed=13s
+[2025-01-15 09:00:16] INFO  | Reconciler | Starting reconciliation pass 1: internal ledger vs payment gateway
+[2025-01-15 09:02:44] WARN  | Reconciler | Mismatch detected: 23 transactions with amount discrepancy | threshold=0.01 USD
+[2025-01-15 09:02:45] INFO  | Reconciler | Discrepancy breakdown: 18 rounding errors (auto-resolved), 5 require manual review
+[2025-01-15 09:02:45] INFO  | Reconciler | Auto-resolved 18 rounding discrepancies | max_diff=0.02 USD
+[2025-01-15 09:02:46] WARN  | Reconciler | Manual review queue updated: 5 transactions flagged | txns=[TXN-77801, TXN-77956, TXN-78002, TXN-78101, TXN-78190]
+[2025-01-15 09:03:00] INFO  | Reconciler | Starting reconciliation pass 2: payment gateway vs bank settlement
+[2025-01-15 09:05:30] INFO  | Reconciler | Pass 2 complete: all 48,291 records matched | settlement_date=2025-01-14
+[2025-01-15 09:05:31] INFO  | ReportGenerator | Generating daily reconciliation report
+[2025-01-15 09:05:35] INFO  | ReportGenerator | Report generated: /reports/reconciliation_2025-01-14.pdf | pages=12
+[2025-01-15 09:05:36] INFO  | NotificationService | Email sent to finance-team@company.com | subject="Daily Reconciliation Report - Jan 14"
+[2025-01-15 09:05:36] INFO  | Scheduler | Batch job completed: reconciliation_pipeline | job_id=JOB-2201 | elapsed=5m35s | status=SUCCESS
