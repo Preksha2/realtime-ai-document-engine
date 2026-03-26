@@ -79,7 +79,7 @@ def run_demo(backend: str = "huggingface", model: str = None):
         logger.warning("OPENAI_API_KEY not set, falling back to HuggingFace")
         backend = "huggingface"
 
-    default_model = model or ("gpt-3.5-turbo" if backend == "openai" else "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+    default_model = model or ("gpt-3.5-turbo" if backend == "openai" else "Qwen/Qwen2.5-0.5B-Instruct")
 
     rag_engine = RAGEngine(
         faiss_index=faiss_index,

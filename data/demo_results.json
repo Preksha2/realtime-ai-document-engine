@@ -1,0 +1,42 @@
+[
+  {
+    "query": "What payment failures occurred and how were they handled?",
+    "quality_score": 0.8036,
+    "relevance": 0.3454,
+    "groundedness": 1.0,
+    "safety": true,
+    "pass": true
+  },
+  {
+    "query": "Were there any security incidents or suspicious activity?",
+    "quality_score": 0.6661,
+    "relevance": 0.2202,
+    "groundedness": 0.6667,
+    "safety": true,
+    "pass": true
+  },
+  {
+    "query": "What was the result of the ML model training job?",
+    "quality_score": 0.5853,
+    "relevance": 0.2844,
+    "groundedness": 0.3333,
+    "safety": true,
+    "pass": true
+  },
+  {
+    "query": "Describe the deployment process and any issues encountered.",
+    "quality_score": 0.7288,
+    "relevance": 0.3267,
+    "groundedness": 0.7692,
+    "safety": true,
+    "pass": true
+  },
+  {
+    "query": "How many transactions were processed in the reconciliation batch?",
+    "quality_score": 0.8461,
+    "relevance": 0.487,
+    "groundedness": 1.0,
+    "safety": true,
+    "pass": true
+  }
+]

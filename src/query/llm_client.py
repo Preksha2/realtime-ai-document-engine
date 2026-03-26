@@ -27,7 +27,7 @@ class LLMClient:
         if backend == "openai":
             self._init_openai(model or "gpt-3.5-turbo", api_key)
         elif backend == "huggingface":
-            self._init_huggingface(model or "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+            self._init_huggingface(model or "Qwen/Qwen2.5-0.5B-Instruct")
         else:
             raise ValueError(f"Unsupported backend: {backend}. Use 'huggingface' or 'openai'.")
 
@@ -42,13 +42,12 @@ class LLMClient:
         from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
         self.model_name = model
-        logger.info(f"Loading HuggingFace model: {model} (this may take a moment on first run)")
+        logger.info(f"Loading HuggingFace model: {model}")
 
         self.tokenizer = AutoTokenizer.from_pretrained(model)
         self._model = AutoModelForCausalLM.from_pretrained(
             model,
-            torch_dtype=torch.float32,
-            device_map="auto" if torch.cuda.is_available() else None,
+            dtype=torch.float32,
         )
 
         if self.tokenizer.pad_token is None:
@@ -95,8 +94,13 @@ class LLMClient:
 
     def _generate_huggingface(self, messages: List[dict]) -> dict:
         try:
-            # Build prompt from messages
-            prompt = self._format_chat_prompt(messages)
+            # Use tokenizer's chat template if available
+            if hasattr(self.tokenizer, 'apply_chat_template'):
+                prompt = self.tokenizer.apply_chat_template(
+                    messages, tokenize=False, add_generation_prompt=True
+                )
+            else:
+                prompt = self._format_chat_prompt(messages)
 
             output = self.pipe(prompt)
             generated = output[0]["generated_text"]
@@ -109,8 +113,6 @@ class LLMClient:
 
             # Clean up common artifacts
             answer = answer.split("\n\n---")[0].strip()
-            answer = answer.split("[/INST]")[0].strip()
-            answer = answer.split("</s>")[0].strip()
 
             logger.info(f"HuggingFace response generated ({len(answer.split())} words)")
             return {

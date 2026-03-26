@@ -1,33 +1,33 @@
-fastapi==0.109.0
-uvicorn==0.27.0
-websockets==12.0
-python-dotenv==1.0.0
-pydantic==2.5.3
+fastapi>=0.109.0
+uvicorn>=0.27.0
+websockets>=12.0
+python-dotenv>=1.0.0
+pydantic>=2.5.3
 
 # ML / Embeddings
-torch==2.1.2
-sentence-transformers==2.3.1
-faiss-cpu==1.7.4
-numpy==1.26.3
+torch>=2.2.0
+sentence-transformers>=2.3.1
+faiss-cpu>=1.7.4
+numpy>=1.26.3
 
 # LLM - HuggingFace (default, free)
-transformers==4.37.2
-accelerate==0.26.1
+transformers>=4.37.2
+accelerate>=0.26.1
 
 # LLM - OpenAI (optional)
-langchain==0.1.4
-langchain-community==0.0.16
-openai==1.10.0
+langchain>=0.1.4
+langchain-community>=0.0.16
+openai>=1.10.0
 
 # Document Processing
-pypdf==3.17.4
-python-docx==1.1.0
-tiktoken==0.5.2
+pypdf>=3.17.4
+python-docx>=1.1.0
+tiktoken>=0.5.2
 
 # Evaluation
-scikit-learn==1.4.0
-rouge-score==0.1.2
+scikit-learn>=1.4.0
+rouge-score>=0.1.2
 
 # Utilities
-pyyaml==6.0.1
-loguru==0.7.2
+pyyaml>=6.0.1
+loguru>=0.7.2
