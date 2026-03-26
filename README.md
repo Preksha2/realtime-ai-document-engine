@@ -21,14 +21,14 @@ User Query --> Embedding --> Vector Search --> Top-K Chunks --> LLM Prompt --> R
 
 - **Retrieval**: FAISS (Facebook AI Similarity Search) over 50K+ document chunks
 - **Embeddings**: Sentence-Transformers (all-MiniLM-L6-v2) via PyTorch
-- **Generation**: Dual LLM backend — HuggingFace (free, local) or OpenAI (optional)
+- **Generation**: Dual LLM backend -- HuggingFace (free, local) or OpenAI (optional)
 - **API**: FastAPI with WebSocket support for real-time querying
 - **Evaluation**: Retrieval relevance, groundedness, reliability, and safety scoring
-- **Deployment**: Dockerized, designed for horizontal scaling across compute nodes
+- **Deployment**: Dockerized with Nginx load balancer for horizontal scaling across multiple compute nodes
 
 ## Quick Start (Demo)
 
-Run the full pipeline end-to-end with sample event logs — no API keys needed:
+Run the full pipeline end-to-end with sample event logs -- no API keys needed:
 
 `ash
 git clone https://github.com/Preksha2/realtime-ai-document-engine.git
@@ -51,6 +51,56 @@ To use OpenAI instead:
 export OPENAI_API_KEY=your_key
 python scripts/demo.py --backend openai
 `
+
+## Scaling to 50K+ Chunks
+
+Generate a large synthetic dataset for stress-testing:
+
+`ash
+python scripts/generate_large_dataset.py --num-entries 55000 --output data/large_events
+`
+
+This creates 55,000 realistic event log entries across 11 files, covering payment processing, authentication, deployments, ML pipelines, infrastructure monitoring, and security events.
+
+## Benchmark: RAG vs Baseline
+
+Compare RAG pipeline accuracy against a no-retrieval baseline:
+
+`ash
+python scripts/benchmark.py
+`
+
+This runs 8 queries with expected keyword matching, comparing:
+- **Baseline**: LLM answers without any document context
+- **RAG**: LLM answers grounded in retrieved event log chunks
+
+Demonstrates significant accuracy improvement from retrieval augmentation.
+
+## Horizontal Scaling
+
+Deploy across multiple compute nodes with Docker + Nginx load balancer:
+
+`ash
+# Single node
+docker-compose up --build
+
+# Multi-node (4 workers behind Nginx)
+docker-compose -f docker-compose.scale.yaml up --build --scale worker=4
+`
+
+Architecture:
+`
+Client --> Nginx (port 8000)
+              |
+              +--> Worker 1 (FastAPI + RAG engine)
+              +--> Worker 2 (FastAPI + RAG engine)
+              +--> Worker 3 (FastAPI + RAG engine)
+              +--> Worker 4 (FastAPI + RAG engine)
+              |
+              +--> Shared FAISS index (mounted volume)
+`
+
+Each worker loads the FAISS index independently and handles queries. Nginx distributes requests via round-robin. WebSocket connections are proxied with upgrade support.
 
 ## Project Structure
 
@@ -79,6 +129,11 @@ src/
     +-- schemas.py          # Pydantic request/response models
 scripts/
 +-- demo.py                 # End-to-end demo with sample event logs
++-- generate_large_dataset.py  # Synthetic 50K+ event log generator
++-- benchmark.py            # RAG vs baseline accuracy comparison
+configs/
++-- config.yaml             # Application configuration
++-- nginx.conf              # Nginx load balancer config
 data/
 +-- sample_events/          # Sample event logs for demo
 `
@@ -87,10 +142,10 @@ data/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/health` | Health check and index status |
-| POST | `/query` | Query event logs via natural language |
-| POST | `/index` | Build index from a document directory |
-| WS | `/ws/query` | Real-time querying via WebSocket |
+| GET | /health | Health check and index status |
+| POST | /query | Query event logs via natural language |
+| POST | /index | Build index from a document directory |
+| WS | /ws/query | Real-time querying via WebSocket |
 
 ## Usage
 
@@ -128,16 +183,6 @@ async def query():
 asyncio.run(query())
 `
 
-## Sample Event Logs
-
-The `data/sample_events/` directory includes realistic operational logs covering:
-
-- **Payment processing**: Transaction flows, gateway timeouts, fallback routing
-- **Authentication & security**: Login attempts, brute force detection, session management
-- **Deployment & infrastructure**: Rolling updates, auto-scaling, post-deploy monitoring
-- **ML pipeline**: Model training, evaluation metrics, A/B test configuration
-- **Batch reconciliation**: Transaction matching, discrepancy detection, report generation
-
 ## Evaluation
 
 Four-dimensional evaluation measuring response quality:
@@ -146,6 +191,8 @@ Four-dimensional evaluation measuring response quality:
 - **Groundedness** (30%): Per-sentence verification against source chunks
 - **Reliability** (20%): Response consistency across repeated queries
 - **Safety** (20%): PII leak detection, hallucination signals, response anomalies
+
+Overall quality score is a weighted combination; responses must score >= 0.5 and pass safety checks.
 
 ## Testing
 
@@ -156,11 +203,11 @@ pytest tests/ --cov=src --cov-report=html
 
 ## Configuration
 
-Edit `configs/config.yaml` to customize:
+Edit configs/config.yaml to customize:
 - Chunk size and overlap
 - Embedding model
 - FAISS index type (Flat vs IVFFlat)
-- LLM backend (`huggingface` or `openai`)
+- LLM backend (huggingface or openai)
 - Evaluation thresholds
 - API settings
 

@@ -1,0 +1,41 @@
+version: "3.8"
+
+# Multi-node horizontal scaling configuration
+# Usage: docker-compose -f docker-compose.scale.yaml up --build --scale worker=4
+
+services:
+
+  # Nginx load balancer distributes queries across worker nodes
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - worker
+    restart: unless-stopped
+
+  # Worker nodes: each runs the FastAPI RAG engine independently
+  # Scale with: --scale worker=N
+  worker:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    expose:
+      - "8000"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
